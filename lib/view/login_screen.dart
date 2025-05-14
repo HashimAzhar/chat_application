@@ -1,8 +1,11 @@
+import 'package:chat_application/routes/route_names.dart';
 import 'package:chat_application/widgets/authentication_button.dart';
 import 'package:chat_application/widgets/build_text_field.dart';
 import 'package:chat_application/widgets/rounded_rectangle_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_navigation/get_navigation.dart';
+import 'package:get/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -92,7 +95,12 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
 
-                RoundedRectangleButton(text: 'Log in'),
+                GestureDetector(
+                  onTap: () {
+                    Get.offNamed(RouteNames.homeScreen);
+                  },
+                  child: RoundedRectangleButton(text: 'Log in'),
+                ),
                 SizedBox(height: 30.h),
 
                 Row(
@@ -158,6 +166,7 @@ class LoginScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () {
                         // Navigate to signup
+                        Get.offNamed(RouteNames.signUpScreen);
                       },
                       child: Text(
                         'Sign up',

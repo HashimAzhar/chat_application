@@ -145,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                 GestureDetector(
                   onTap: () {
-                    Get.off(RouteNames.signUpScreen);
+                    Get.toNamed(RouteNames.signUpScreen);
                   },
                   child: RoundedRectangleButton(text: 'Sign Up with Email'),
                 ),
@@ -165,7 +165,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                     TextButton(
                       onPressed: () {
-                        Get.offNamed(RouteNames.login);
+                        Get.toNamed(RouteNames.login);
                       },
                       child: Text(
                         'Log in',
