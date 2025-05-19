@@ -1,4 +1,5 @@
 import 'package:chat_application/routes/route_names.dart';
+import 'package:chat_application/view/chat_screen.dart';
 import 'package:chat_application/view/home_screen.dart';
 import 'package:chat_application/view/login_screen.dart';
 import 'package:chat_application/view/sign_up_screen.dart';

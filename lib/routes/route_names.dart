@@ -3,4 +3,5 @@ class RouteNames {
   static const String splashScreen = '/splashscreen';
   static const String signUpScreen = '/signupscreen';
   static const String homeScreen = '/homescreen';
+  static const String chatScreen = '/chatscreen';
 }
