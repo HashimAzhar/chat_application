@@ -1,4 +1,4 @@
-import 'package:chat_application/view_model/obsecure_text_provider.dart';
+import 'package:chat_application/controller/obsecure_text_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

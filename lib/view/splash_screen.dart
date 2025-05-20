@@ -1,20 +1,23 @@
+import 'package:chat_application/controller/google_auth_provider.dart';
 import 'package:chat_application/routes/route_names.dart';
 import 'package:chat_application/widgets/authentication_button.dart';
 import 'package:chat_application/widgets/rounded_rectangle_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
+    final socialAuthController = ref.read(socialAuthProvider);
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -96,10 +99,17 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: Row(
                       children: [
                         AuthenticationButton(
+                          ontap: () {
+                            print('Facebook Sign-In tapped');
+                            socialAuthController.handleFacebookSignIn(context);
+                          },
                           imagePath: 'assets/images/facebook_logo.png',
                         ),
                         SizedBox(width: 20.w),
                         AuthenticationButton(
+                          ontap: () {
+                            socialAuthController.handleGoogleSignIn(context);
+                          },
                           imagePath: 'assets/images/google.png',
                         ),
                         SizedBox(width: 20.w),
