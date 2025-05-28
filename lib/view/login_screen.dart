@@ -1,18 +1,38 @@
+import 'package:chat_application/controller/google_auth_provider.dart';
+import 'package:chat_application/controller/login_provider.dart';
 import 'package:chat_application/routes/route_names.dart';
 import 'package:chat_application/widgets/authentication_button.dart';
 import 'package:chat_application/widgets/build_text_field.dart';
 import 'package:chat_application/widgets/rounded_rectangle_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:get/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final loginState = ref.watch(loginProvider);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -74,9 +94,13 @@ class LoginScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 30.h),
 
-                BuildTextField(hintText: 'Email'),
+                BuildTextField(controller: emailController, hintText: 'Email'),
                 SizedBox(height: 20.h),
-                BuildTextField(hintText: 'Password', isPasswordField: true),
+                BuildTextField(
+                  controller: passwordController,
+                  hintText: 'Password',
+                  isPasswordField: true,
+                ),
                 SizedBox(height: 10.h),
 
                 Align(
@@ -97,9 +121,18 @@ class LoginScreen extends StatelessWidget {
 
                 GestureDetector(
                   onTap: () {
-                    Get.offNamed(RouteNames.homeScreen);
+                    ref
+                        .read(loginProvider.notifier)
+                        .login(
+                          context,
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
+                        );
                   },
-                  child: RoundedRectangleButton(text: 'Log in'),
+                  child:
+                      loginState.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : RoundedRectangleButton(text: 'Log in'),
                 ),
                 SizedBox(height: 30.h),
 
@@ -135,20 +168,13 @@ class LoginScreen extends StatelessWidget {
                   child: Container(
                     height: 48.h,
                     width: 184.w,
-                    child: Row(
-                      children: [
-                        AuthenticationButton(
-                          imagePath: 'assets/images/facebook_logo.png',
-                        ),
-                        SizedBox(width: 20.w),
-                        AuthenticationButton(
-                          imagePath: 'assets/images/google.png',
-                        ),
-                        SizedBox(width: 20.w),
-                        AuthenticationButton(
-                          imagePath: 'assets/images/apple_logo.png',
-                        ),
-                      ],
+                    child: AuthenticationButton(
+                      ontap: () {
+                        ref
+                            .read(googleAuthProvider)
+                            .handleGoogleSignIn(context);
+                      },
+                      imagePath: 'assets/images/google.png',
                     ),
                   ),
                 ),

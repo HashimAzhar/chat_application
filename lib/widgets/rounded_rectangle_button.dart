@@ -3,25 +3,30 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RoundedRectangleButton extends StatelessWidget {
-  String text;
-  RoundedRectangleButton({super.key, required this.text});
+  final String text;
+  final VoidCallback? onTap;
+
+  const RoundedRectangleButton({super.key, required this.text, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 48.h,
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: GoogleFonts.poppins(
-            color: Color(0xFF000E08),
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
+        child: Container(
+          width: double.infinity,
+          height: 48.h,
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF000E08),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ),

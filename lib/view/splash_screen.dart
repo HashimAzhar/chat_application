@@ -17,7 +17,6 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
-    final socialAuthController = ref.read(socialAuthProvider);
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -96,27 +95,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   child: Container(
                     height: 48.h,
                     width: 184.w,
-                    child: Row(
-                      children: [
-                        AuthenticationButton(
-                          ontap: () {
-                            print('Facebook Sign-In tapped');
-                            socialAuthController.handleFacebookSignIn(context);
-                          },
-                          imagePath: 'assets/images/facebook_logo.png',
-                        ),
-                        SizedBox(width: 20.w),
-                        AuthenticationButton(
-                          ontap: () {
-                            socialAuthController.handleGoogleSignIn(context);
-                          },
-                          imagePath: 'assets/images/google.png',
-                        ),
-                        SizedBox(width: 20.w),
-                        AuthenticationButton(
-                          imagePath: 'assets/images/apple_logo.png',
-                        ),
-                      ],
+                    child: AuthenticationButton(
+                      ontap: () {
+                        ref
+                            .read(googleAuthProvider)
+                            .handleGoogleSignIn(context);
+                      },
+                      imagePath: 'assets/images/google.png',
                     ),
                   ),
                 ),

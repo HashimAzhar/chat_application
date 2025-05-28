@@ -1,5 +1,4 @@
 import 'package:chat_application/Services/Google_Sign_In_Service.dart';
-import 'package:chat_application/Services/Facebook_Sign_In_Service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chat_application/routes/route_names.dart';
 import 'package:flutter/material.dart';
@@ -8,29 +7,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-final socialAuthProvider = Provider<SocialAuthController>((ref) {
-  return SocialAuthController(ref);
+final googleAuthProvider = Provider<GoogleAuthController>((ref) {
+  return GoogleAuthController(ref);
 });
 
-class SocialAuthController {
+class GoogleAuthController {
   final Ref ref;
-  SocialAuthController(this.ref);
+  GoogleAuthController(this.ref);
 
   Future<void> handleGoogleSignIn(BuildContext context) async {
     final userCredential = await GoogleSignInService.signInWithGoogle();
-    await _postSignIn(context, userCredential);
-  }
 
-  Future<void> handleFacebookSignIn(BuildContext context) async {
-    print('handleFacebookSignIn called');
-    final userCredential = await FacebookSignInService.signInWithFacebook();
-    await _postSignIn(context, userCredential);
-  }
-
-  Future<void> _postSignIn(
-    BuildContext context,
-    UserCredential? userCredential,
-  ) async {
     if (userCredential != null) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -41,7 +28,7 @@ class SocialAuthController {
     } else {
       Get.snackbar(
         "Error",
-        "Sign-In failed",
+        "Google Sign-In failed",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

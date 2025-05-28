@@ -1,38 +1,59 @@
-import 'package:chat_application/routes/route_names.dart';
-import 'package:chat_application/widgets/authentication_button.dart';
-import 'package:chat_application/widgets/build_text_field.dart';
-import 'package:chat_application/widgets/rounded_rectangle_button.dart';
+import 'package:chat_application/controller/email_auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../controller/google_auth_provider.dart';
+import '../../routes/route_names.dart';
+import '../../widgets/authentication_button.dart';
+import '../../widgets/build_text_field.dart';
+import '../../widgets/rounded_rectangle_button.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final signUpState = ref.watch(signUpProvider);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 17.h),
           width: double.infinity,
           height: MediaQuery.of(context).size.height,
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 17.h),
           decoration: BoxDecoration(
             gradient: RadialGradient(
               center: Alignment.topRight,
               radius: 2.2,
               colors: [
-                Color(0xFF43116A).withOpacity(0.9),
-                Color.fromARGB(255, 0, 0, 0),
+                const Color(0xFF43116A).withOpacity(0.9),
+                const Color.fromARGB(255, 0, 0, 0),
               ],
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo
+              /// Logo
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -67,32 +88,48 @@ class SignupScreen extends StatelessWidget {
                 'Create your account to continue using Chatbox.',
                 style: GoogleFonts.poppins(
                   fontSize: 15.sp,
-                  color: Color(0xFFB9C1BE),
+                  color: const Color(0xFFB9C1BE),
                 ),
               ),
               SizedBox(height: 30.h),
 
-              BuildTextField(hintText: 'username'),
+              BuildTextField(
+                controller: _usernameController,
+                hintText: 'Username',
+              ),
               SizedBox(height: 20.h),
-              // Email Field
-              BuildTextField(hintText: 'Email'),
+              BuildTextField(controller: _emailController, hintText: 'Email'),
+              SizedBox(height: 20.h),
+              BuildTextField(
+                controller: _passwordController,
+                hintText: 'Password',
+                isPasswordField: true,
+              ),
               SizedBox(height: 20.h),
 
-              // Password Field
-              BuildTextField(hintText: 'Password', isPasswordField: true),
-              SizedBox(height: 20.h),
-
-              // Confirm Password Field
-
-              // Signup Button
-              RoundedRectangleButton(text: 'Create Account'),
+              signUpState.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RoundedRectangleButton(
+                    text: 'Create Account',
+                    onTap: () {
+                      ref
+                          .read(signUpProvider.notifier)
+                          .signUp(
+                            context,
+                            _usernameController.text.trim(),
+                            _emailController.text.trim(),
+                            _passwordController.text.trim(),
+                          );
+                    },
+                  ),
               SizedBox(height: 30.h),
 
+              /// OR divider
               Row(
                 children: [
                   Expanded(
                     child: Divider(
-                      color: Color(0xFFCDD1D0).withOpacity(.5),
+                      color: const Color(0xFFCDD1D0).withOpacity(.5),
                       thickness: 1.h,
                     ),
                   ),
@@ -101,14 +138,14 @@ class SignupScreen extends StatelessWidget {
                     child: Text(
                       'OR',
                       style: GoogleFonts.poppins(
-                        color: Color(0xFFD6E4E0),
+                        color: const Color(0xFFD6E4E0),
                         fontSize: 14.sp,
                       ),
                     ),
                   ),
                   Expanded(
                     child: Divider(
-                      color: Color(0xFFCDD1D0).withOpacity(.5),
+                      color: const Color(0xFFCDD1D0).withOpacity(.5),
                       thickness: 1.h,
                     ),
                   ),
@@ -116,43 +153,35 @@ class SignupScreen extends StatelessWidget {
               ),
               SizedBox(height: 30.h),
 
-              // Auth Buttons
+              /// Google Auth Button
               Center(
-                child: Container(
+                child: SizedBox(
                   height: 48.h,
                   width: 184.w,
-                  child: Row(
-                    children: [
-                      AuthenticationButton(
-                        imagePath: 'assets/images/facebook_logo.png',
-                      ),
-                      SizedBox(width: 20.w),
-                      AuthenticationButton(
-                        imagePath: 'assets/images/google.png',
-                      ),
-                      SizedBox(width: 20.w),
-                      AuthenticationButton(
-                        imagePath: 'assets/images/apple_logo.png',
-                      ),
-                    ],
+                  child: AuthenticationButton(
+                    ontap: () {
+                      ref.read(googleAuthProvider).handleGoogleSignIn(context);
+                    },
+                    imagePath: 'assets/images/google.png',
                   ),
                 ),
               ),
 
               SizedBox(height: 46.h),
 
+              /// Already have account
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Already have an account?',
                     style: GoogleFonts.poppins(
-                      color: Color(0xFFB9C1BE),
+                      color: const Color(0xFFB9C1BE),
                       fontSize: 14.sp,
                     ),
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navigate to login
                       Get.offNamed(RouteNames.login);
                     },
                     child: Text(
