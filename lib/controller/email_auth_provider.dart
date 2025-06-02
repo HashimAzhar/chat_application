@@ -47,7 +47,7 @@ class SignUpNotifier extends StateNotifier<AsyncValue<void>> {
 
         await _firestore.collection('users').doc(user.uid).set(userData);
         state = const AsyncData(null);
-        Get.offAllNamed(RouteNames.homeScreen);
+        Get.offAllNamed(RouteNames.bottomNavView);
       }
     } catch (e, st) {
       state = AsyncError(e, st);

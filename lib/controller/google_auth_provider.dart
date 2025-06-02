@@ -24,7 +24,7 @@ class GoogleAuthController {
         await _saveUserToFirestore(user);
       }
 
-      Get.offAllNamed(RouteNames.homeScreen);
+      Get.offAllNamed(RouteNames.bottomNavView);
     } else {
       Get.snackbar(
         "Error",

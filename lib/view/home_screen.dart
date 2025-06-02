@@ -1,23 +1,21 @@
+import 'package:chat_application/controller/user_provider.dart';
 import 'package:chat_application/view/chat_screen.dart';
 import 'package:chat_application/widgets/search_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userListAsync = ref.watch(allUsersProvider);
 
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Match your app theme
+      backgroundColor: Colors.black,
       body: Container(
         decoration: BoxDecoration(
           gradient: RadialGradient(
@@ -44,93 +42,88 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    CircleAvatar(
-                      radius: 20.r,
+                    const CircleAvatar(
+                      radius: 20,
                       backgroundImage: NetworkImage(
                         'https://randomuser.me/api/portraits/men/1.jpg',
                       ),
                     ),
                   ],
                 ),
-
                 SizedBox(height: 20.h),
 
                 // Search Bar
                 SearchTextField(),
-
                 SizedBox(height: 20.h),
 
-                // Chat List
+                // User List
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: 15,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 12.h),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            radius: 26.r,
-                            backgroundImage: NetworkImage(
-                              'https://randomuser.me/api/portraits/men/${index + 10}.jpg',
-                            ),
-                          ),
-                          title: Text(
-                            'User ${index + 1}',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'Hey there! How are you?',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[400],
-                              fontSize: 13.sp,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                  child: userListAsync.when(
+                    data: (users) {
+                      return ListView.builder(
+                        itemCount: users.length,
+                        itemBuilder: (context, index) {
+                          final user = users[index];
+                          return Column(
                             children: [
-                              Text(
-                                '10:2${index} AM',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey[500],
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                              SizedBox(height: 4.h),
-                              Container(
-                                padding: EdgeInsets.all(6.r),
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Text(
-                                  '1',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 10.sp,
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: CircleAvatar(
+                                  radius: 26.r,
+                                  backgroundImage: NetworkImage(
+                                    user.photoUrl.isEmpty
+                                        ? 'https://via.placeholder.com/150'
+                                        : user.photoUrl,
                                   ),
                                 ),
+                                title: Text(
+                                  user.name,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  user.about,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[400],
+                                    fontSize: 13.sp,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Icon(
+                                  Icons.circle,
+                                  size: 10,
+                                  color:
+                                      user.isOnline
+                                          ? Colors.green
+                                          : Colors.grey,
+                                ),
+                                onTap: () {
+                                  Get.to(
+                                    ChatScreen(
+                                      userName: user.name,
+                                      userImage: user.photoUrl,
+                                    ),
+                                  );
+                                },
+                              ),
+                              Divider(
+                                color: Colors.white12,
+                                thickness: 0.5,
+                                indent: 70.w,
+                                endIndent: 10.w,
                               ),
                             ],
-                          ),
-                          onTap: () {
-                            Get.to(
-                              ChatScreen(
-                                userName: 'User 1',
-                                userImage:
-                                    'https://randomuser.me/api/portraits/men/3.jpg',
-                              ),
-                            );
-                          },
-                        ),
+                          );
+                        },
                       );
                     },
+                    loading:
+                        () => const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(child: Text('Error: $e')),
                   ),
                 ),
               ],

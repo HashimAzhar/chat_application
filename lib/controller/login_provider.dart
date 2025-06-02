@@ -39,7 +39,7 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
         });
 
         state = const AsyncData(null);
-        Get.offAllNamed(RouteNames.homeScreen);
+        Get.offAllNamed(RouteNames.bottomNavView);
       }
     } catch (e, st) {
       state = AsyncError(e, st);

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -15,10 +16,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
+  //Supabase initialization
+  await Supabase.initialize(
+    url: 'https://wajfcdnzbfftyaqciwdo.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhamZjZG56YmZmdHlhcWNpd2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NjExMDcsImV4cCI6MjA2NDAzNzEwN30.RqpKvaN4POto98_kdPNi-0hKEsFy05ivXqNxevLSKl4',
+  );
   runApp(const MyApp());
 }
 
@@ -39,7 +46,7 @@ class MyApp extends StatelessWidget {
               // scaffoldBackgroundColor: ColorScheme.dark().background,
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
-            initialRoute: RouteNames.splashScreen, // <-- go directly to chat
+            initialRoute: RouteNames.firstSplashView, // <-- go directly to chat
             getPages: AppRoutes.routes,
             debugShowCheckedModeBanner: false,
           );
