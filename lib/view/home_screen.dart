@@ -1,4 +1,5 @@
 import 'package:chat_application/controller/user_provider.dart';
+import 'package:chat_application/routes/route_names.dart';
 import 'package:chat_application/view/chat_screen.dart';
 import 'package:chat_application/widgets/search_text_field.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+            padding: EdgeInsets.symmetric(horizontal: 13.w, vertical: 10.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -42,10 +43,69 @@ class HomeScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(
-                        'https://randomuser.me/api/portraits/men/1.jpg',
+                    Container(
+                      width: 100.w,
+                      height: 40.h,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.camera_alt_outlined,
+                              color: Colors.white,
+                              size: 28.sp,
+                            ),
+                          ),
+                          Theme(
+                            data: Theme.of(context).copyWith(
+                              popupMenuTheme: PopupMenuThemeData(
+                                color: const Color.fromARGB(
+                                  255,
+                                  42,
+                                  29,
+                                  90,
+                                ), // background color
+                                textStyle: TextStyle(
+                                  color: Colors.white,
+                                ), // text color
+                              ),
+                            ),
+                            child: PopupMenuButton<String>(
+                              offset: Offset(
+                                0,
+                                40,
+                              ), // Push the menu down (Y-axis)
+                              icon: Icon(
+                                Icons.more_vert,
+                                color: Colors.white,
+                                size: 28.sp,
+                              ),
+                              onSelected: (value) {
+                                if (value == 'New Group') {
+                                } else if (value == 'Settings') {
+                                  Get.toNamed(RouteNames.settingScreen);
+                                }
+                              },
+                              itemBuilder:
+                                  (BuildContext context) => [
+                                    PopupMenuItem(
+                                      value: 'New Group',
+                                      child: Text(
+                                        'New Group',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'Settings',
+                                      child: Text(
+                                        'Settings',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -72,7 +132,7 @@ class HomeScreen extends ConsumerWidget {
                                   radius: 26.r,
                                   backgroundImage: NetworkImage(
                                     user.photoUrl.isEmpty
-                                        ? 'https://via.placeholder.com/150'
+                                        ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIwRBD9gNuA2GjcOf6mpL-WuBhJADTWC3QVQ&s'
                                         : user.photoUrl,
                                   ),
                                 ),

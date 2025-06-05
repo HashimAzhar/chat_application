@@ -1,4 +1,5 @@
 import 'package:chat_application/controller/bottom_nav_controller.dart';
+import 'package:chat_application/view/call_log_screen.dart';
 import 'package:chat_application/view/setting_screen.dart';
 import 'package:chat_application/view/story_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class BottomNavView extends ConsumerWidget {
   final List<Widget> _screens = const [
     HomeScreen(),
     StoryScreen(),
-    SettingScreen(),
+    CallLogScreen(),
   ];
 
   @override
@@ -57,9 +58,9 @@ class BottomNavView extends ConsumerWidget {
               label: 'Story',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings),
-              label: 'Settings',
+              icon: Icon(Icons.call_end_outlined),
+              activeIcon: Icon(Icons.call_end_outlined),
+              label: 'Calls',
             ),
           ],
         ),

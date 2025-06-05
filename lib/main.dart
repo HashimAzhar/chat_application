@@ -46,6 +46,7 @@ class MyApp extends StatelessWidget {
               // scaffoldBackgroundColor: ColorScheme.dark().background,
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
+
             initialRoute: RouteNames.firstSplashView, // <-- go directly to chat
             getPages: AppRoutes.routes,
             debugShowCheckedModeBanner: false,

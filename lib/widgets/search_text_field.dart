@@ -30,13 +30,13 @@ class _SearchTextFieldState extends State<SearchTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40.h,
+      height: 50.h,
       child: TextField(
         controller: _controller,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.grey[800],
+          fillColor: const Color.fromARGB(255, 42, 29, 90),
           hintText: widget.hintText,
           hintStyle: TextStyle(color: Colors.grey[400]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[400]),

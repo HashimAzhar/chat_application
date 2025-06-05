@@ -13,7 +13,7 @@ class SplashServices {
     if (user != null) {
       Timer(
         const Duration(seconds: 3),
-        () => Get.offAllNamed(RouteNames.homeScreen),
+        () => Get.offAllNamed(RouteNames.bottomNavView),
       );
     } else {
       Timer(

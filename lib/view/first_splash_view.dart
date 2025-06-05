@@ -12,12 +12,12 @@ class FirstSplashView extends StatefulWidget {
 
 class _FirstSplashViewState extends State<FirstSplashView> {
   final SplashServices splashServices = SplashServices();
-  // @override
-  // void initState() {
-  //   super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-  //   splashServices.isLogin(context);
-  // }
+    splashServices.isLogin(context);
+  }
 
   @override
   Widget build(BuildContext context) {

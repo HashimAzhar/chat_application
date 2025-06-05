@@ -7,3 +7,7 @@ final userRepositoryProvider = Provider((ref) => UserRepository());
 final allUsersProvider = StreamProvider<List<UserModel>>((ref) {
   return ref.read(userRepositoryProvider).getAllUsers();
 });
+
+final userByIdProvider = StreamProvider.family<UserModel, String>((ref, uid) {
+  return ref.read(userRepositoryProvider).getUserStreamById(uid);
+});

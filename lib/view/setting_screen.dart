@@ -1,17 +1,24 @@
+import 'package:chat_application/controller/user_provider.dart';
+import 'package:chat_application/models/user_model.dart';
+import 'package:chat_application/widgets/profile_image_picker_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SettingScreen extends StatefulWidget {
+class SettingScreen extends ConsumerStatefulWidget {
   const SettingScreen({super.key});
 
   @override
-  State<SettingScreen> createState() => _SettingScreenState();
+  ConsumerState<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class _SettingScreenState extends ConsumerState<SettingScreen> {
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final userAsync = ref.watch(userByIdProvider(uid ?? ''));
     return Scaffold(
       backgroundColor: Colors.black,
       body: Container(
@@ -24,106 +31,95 @@ class _SettingScreenState extends State<SettingScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Settings',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 30.h),
-
-                // Profile Section
-                Row(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: userAsync.when(
+              data: (user) {
+                return Column(
                   children: [
-                    CircleAvatar(
-                      radius: 30.r,
-                      backgroundImage: const NetworkImage(
-                        'https://randomuser.me/api/portraits/men/11.jpg',
+                    SizedBox(height: 30.h),
+
+                    // Centered Profile
+                    Center(
+                      child: Column(
+                        children: [
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 60.r,
+                                backgroundImage: NetworkImage(
+                                  user.photoUrl.isNotEmpty
+                                      ? user.photoUrl
+                                      : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIwRBD9gNuA2GjcOf6mpL-WuBhJADTWC3QVQ&s',
+                                ),
+                              ),
+                              ProfileImagePickerButton(),
+                            ],
+                          ),
+                          SizedBox(height: 14.h),
+                          Text(
+                            user.name,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            user.email,
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[400],
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(width: 12.w),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "John Doe",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          "johndoe@example.com",
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                      ],
+
+                    SizedBox(height: 40.h),
+
+                    // Settings Options (cleaned)
+                    _buildSettingTile(
+                      Icons.notifications_none,
+                      'Notifications',
                     ),
+                    _buildSettingTile(Icons.palette_outlined, 'Theme'),
+
+                    const Spacer(),
+
+                    // Logout Button
+                    _buildActionButton(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      color: Colors.deepPurpleAccent,
+                      onPressed: () {},
+                    ),
+                    SizedBox(height: 14.h),
+
+                    // Delete Button
+                    _buildActionButton(
+                      icon: Icons.delete_forever,
+                      title: 'Delete Account',
+                      color: Colors.redAccent,
+                      onPressed: () {},
+                    ),
+                    SizedBox(height: 25.h),
                   ],
-                ),
-
-                SizedBox(height: 30.h),
-
-                // Settings Options
-                _buildSettingOption(Icons.person, 'Account'),
-                _buildSettingOption(Icons.notifications, 'Notifications'),
-                _buildSettingOption(Icons.privacy_tip, 'Privacy'),
-                _buildSettingOption(Icons.palette, 'Theme'),
-
-                const Spacer(),
-
-                // Logout Button
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
-                    minimumSize: Size(double.infinity, 48.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                );
+              },
+              loading:
+                  () => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+              error:
+                  (error, stack) => Center(
+                    child: Text(
+                      'Error: $error',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                      ),
                     ),
                   ),
-                  onPressed: () {},
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  label: Text(
-                    'Logout',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 12.h),
-
-                // Delete Account Button
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    minimumSize: Size(double.infinity, 48.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  onPressed: () {},
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  label: Text(
-                    'Delete Account',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ),
@@ -131,18 +127,60 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  Widget _buildSettingOption(IconData icon, String title) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10.h),
+  Widget _buildSettingTile(IconData icon, String title) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(14.r),
+      ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white70, size: 22.r),
+          Icon(icon, color: Colors.white, size: 24.sp),
           SizedBox(width: 16.w),
           Text(
             title,
-            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14.sp),
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const Spacer(),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white54,
+            size: 16.sp,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        minimumSize: Size(double.infinity, 50.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14.r),
+        ),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon, color: Colors.white),
+      label: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 15.sp,
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
