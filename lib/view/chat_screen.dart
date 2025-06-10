@@ -1,16 +1,53 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final String userName;
   final String userImage;
 
-  const ChatScreen({
-    super.key,
-    required this.userName,
-    required this.userImage,
-  });
+  ChatScreen({super.key, required this.userName, required this.userImage});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController =
+      ScrollController(); // Added ScrollController
+
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = _auth.currentUser;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose(); // Dispose the scroll controller
+    super.dispose();
+  }
+
+  // Function to scroll to the bottom of the chat list
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController
+            .position
+            .minScrollExtent, // minScrollExtent is the bottom when reverse: true
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +80,11 @@ class ChatScreen extends StatelessWidget {
                     SizedBox(width: 12.w),
                     CircleAvatar(
                       radius: 20.r,
-                      backgroundImage: NetworkImage(userImage),
+                      backgroundImage: NetworkImage(widget.userImage),
                     ),
                     SizedBox(width: 12.w),
                     Text(
-                      userName,
+                      widget.userName,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 18.sp,
@@ -58,16 +95,55 @@ class ChatScreen extends StatelessWidget {
                 ),
               ),
 
-              // Dummy chat messages
+              // Chat messages
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  children: [
-                    _buildMessage("Hey! How are you?", false),
-                    _buildMessage("I'm good, thanks! You?", true),
-                    _buildMessage("Doing great!", false),
-                    _buildMessage("Glad to hear that!", true),
-                  ],
+                child: StreamBuilder(
+                  stream:
+                      _firestore
+                          .collection('chats')
+                          .orderBy(
+                            'timestamp',
+                            descending: true,
+                          ) // Query in descending to get latest at the top of the stream
+                          .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
+
+                    final messages = snapshot.data!.docs;
+
+                    // Schedule a scroll to bottom after the messages are built
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _scrollToBottom();
+                    });
+
+                    return ListView.builder(
+                      controller:
+                          _scrollController, // Assign the scroll controller
+                      reverse:
+                          true, // This makes the list start from the bottom
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = messages[index];
+                        final text = msg['text'] as String;
+                        final senderId = msg['senderId'] as String?;
+                        final isMe =
+                            _currentUser != null &&
+                            senderId == _currentUser!.uid;
+                        return _buildMessage(text, isMe);
+                      },
+                    );
+                  },
                 ),
               ),
 
@@ -86,20 +162,35 @@ class ChatScreen extends StatelessWidget {
                           border: Border.all(color: Colors.grey[800]!),
                         ),
                         child: TextField(
-                          style: TextStyle(color: Colors.white),
+                          controller: _controller,
+                          style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: "Type a message",
                             hintStyle: TextStyle(color: Colors.grey[400]),
                           ),
+                          onSubmitted: (value) {
+                            // Allows sending message by pressing Enter
+                            if (value.trim().isNotEmpty) {
+                              _sendMessage();
+                            }
+                          },
                         ),
                       ),
                     ),
                     SizedBox(width: 10.w),
-                    CircleAvatar(
-                      radius: 22.r,
-                      backgroundColor: Colors.deepPurple,
-                      child: Icon(Icons.send, color: Colors.white, size: 18.sp),
+                    GestureDetector(
+                      onTap:
+                          _sendMessage, // Call the private send message method
+                      child: CircleAvatar(
+                        radius: 22.r,
+                        backgroundColor: Colors.deepPurple,
+                        child: Icon(
+                          Icons.send,
+                          color: Colors.white,
+                          size: 18.sp,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -109,6 +200,17 @@ class ChatScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _sendMessage() {
+    if (_controller.text.trim().isNotEmpty && _currentUser != null) {
+      _firestore.collection('chats').add({
+        'text': _controller.text.trim(),
+        'senderId': _currentUser!.uid,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      _controller.clear();
+    }
   }
 
   Widget _buildMessage(String message, bool isMe) {

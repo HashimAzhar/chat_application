@@ -1,10 +1,14 @@
 import 'package:chat_application/controller/user_provider.dart';
 import 'package:chat_application/models/user_model.dart';
+import 'package:chat_application/routes/route_names.dart';
+import 'package:chat_application/view/login_screen.dart';
 import 'package:chat_application/widgets/profile_image_picker_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingScreen extends ConsumerStatefulWidget {
@@ -91,7 +95,10 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                       icon: Icons.logout,
                       title: 'Logout',
                       color: Colors.deepPurpleAccent,
-                      onPressed: () {},
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        Get.offAllNamed(RouteNames.login);
+                      },
                     ),
                     SizedBox(height: 14.h),
 
