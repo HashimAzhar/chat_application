@@ -7,8 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 class ChatScreen extends StatefulWidget {
   final String userName;
   final String userImage;
+  final String recipientId; // Added recipientId
 
-  ChatScreen({super.key, required this.userName, required this.userImage});
+  ChatScreen({
+    super.key,
+    required this.userName,
+    required this.userImage,
+    required this.recipientId, // Required recipientId
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -18,34 +24,59 @@ class _ChatScreenState extends State<ChatScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController =
-      ScrollController(); // Added ScrollController
+  final ScrollController _scrollController = ScrollController();
 
   User? _currentUser;
+  String? _chatRoomId; // To store the unique chat room ID
 
   @override
   void initState() {
     super.initState();
     _currentUser = _auth.currentUser;
+    _generateChatRoomId(); // Generate chat room ID on init
+  }
+
+  // Generates a unique chat room ID by sorting the current user's UID and recipient's UID
+  void _generateChatRoomId() {
+    if (_currentUser != null) {
+      List<String> ids = [_currentUser!.uid, widget.recipientId];
+      ids.sort(); // Sort to ensure consistent chatRoomId regardless of who started the chat
+      _chatRoomId = ids.join('_'); // e.g., "uid1_uid2"
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _scrollController.dispose(); // Dispose the scroll controller
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // Function to scroll to the bottom of the chat list
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController
-            .position
-            .minScrollExtent, // minScrollExtent is the bottom when reverse: true
+        _scrollController.position.minScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
+    }
+  }
+
+  void _sendMessage() async {
+    if (_controller.text.trim().isNotEmpty &&
+        _currentUser != null &&
+        _chatRoomId != null) {
+      await _firestore
+          .collection('chats')
+          .doc(_chatRoomId)
+          .collection('messages')
+          .add({
+            'text': _controller.text.trim(),
+            'senderId': _currentUser!.uid,
+            'receiverId': widget.recipientId, // Added receiverId
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+      _controller.clear();
     }
   }
 
@@ -97,54 +128,61 @@ class _ChatScreenState extends State<ChatScreen> {
 
               // Chat messages
               Expanded(
-                child: StreamBuilder(
-                  stream:
-                      _firestore
-                          .collection('chats')
-                          .orderBy(
-                            'timestamp',
-                            descending: true,
-                          ) // Query in descending to get latest at the top of the stream
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Error: ${snapshot.error}',
-                          style: TextStyle(color: Colors.red),
+                child:
+                    _chatRoomId == null
+                        ? const Center(
+                          child: CircularProgressIndicator(),
+                        ) // Show loading if chatRoomId isn't ready
+                        : StreamBuilder(
+                          stream:
+                              _firestore
+                                  .collection('chats')
+                                  .doc(
+                                    _chatRoomId,
+                                  ) // Access the specific chat room
+                                  .collection(
+                                    'messages',
+                                  ) // Access the messages subcollection
+                                  .orderBy('timestamp', descending: true)
+                                  .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              );
+                            }
+
+                            final messages = snapshot.data!.docs;
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              reverse: true,
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                final msg = messages[index];
+                                final text = msg['text'] as String;
+                                final senderId = msg['senderId'] as String?;
+                                final isMe =
+                                    _currentUser != null &&
+                                    senderId == _currentUser!.uid;
+                                return _buildMessage(text, isMe);
+                              },
+                            );
+                          },
                         ),
-                      );
-                    }
-
-                    final messages = snapshot.data!.docs;
-
-                    // Schedule a scroll to bottom after the messages are built
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollToBottom();
-                    });
-
-                    return ListView.builder(
-                      controller:
-                          _scrollController, // Assign the scroll controller
-                      reverse:
-                          true, // This makes the list start from the bottom
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final msg = messages[index];
-                        final text = msg['text'] as String;
-                        final senderId = msg['senderId'] as String?;
-                        final isMe =
-                            _currentUser != null &&
-                            senderId == _currentUser!.uid;
-                        return _buildMessage(text, isMe);
-                      },
-                    );
-                  },
-                ),
               ),
 
               // Input field
@@ -170,7 +208,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             hintStyle: TextStyle(color: Colors.grey[400]),
                           ),
                           onSubmitted: (value) {
-                            // Allows sending message by pressing Enter
                             if (value.trim().isNotEmpty) {
                               _sendMessage();
                             }
@@ -180,8 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     SizedBox(width: 10.w),
                     GestureDetector(
-                      onTap:
-                          _sendMessage, // Call the private send message method
+                      onTap: _sendMessage,
                       child: CircleAvatar(
                         radius: 22.r,
                         backgroundColor: Colors.deepPurple,
@@ -200,17 +236,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
-  }
-
-  void _sendMessage() {
-    if (_controller.text.trim().isNotEmpty && _currentUser != null) {
-      _firestore.collection('chats').add({
-        'text': _controller.text.trim(),
-        'senderId': _currentUser!.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      _controller.clear();
-    }
   }
 
   Widget _buildMessage(String message, bool isMe) {

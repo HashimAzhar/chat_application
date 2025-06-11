@@ -43,13 +43,15 @@ class HomeScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       width: 100.w,
                       height: 40.h,
                       child: Row(
                         children: [
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              // TODO: Implement camera functionality
+                            },
                             icon: Icon(
                               Icons.camera_alt_outlined,
                               color: Colors.white,
@@ -65,13 +67,13 @@ class HomeScreen extends ConsumerWidget {
                                   29,
                                   90,
                                 ), // background color
-                                textStyle: TextStyle(
+                                textStyle: const TextStyle(
                                   color: Colors.white,
                                 ), // text color
                               ),
                             ),
                             child: PopupMenuButton<String>(
-                              offset: Offset(
+                              offset: const Offset(
                                 0,
                                 40,
                               ), // Push the menu down (Y-axis)
@@ -82,20 +84,21 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               onSelected: (value) {
                                 if (value == 'New Group') {
+                                  // TODO: Implement new group functionality
                                 } else if (value == 'Settings') {
                                   Get.toNamed(RouteNames.settingScreen);
                                 }
                               },
                               itemBuilder:
                                   (BuildContext context) => [
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                       value: 'New Group',
                                       child: Text(
                                         'New Group',
                                         style: TextStyle(color: Colors.white),
                                       ),
                                     ),
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                       value: 'Settings',
                                       child: Text(
                                         'Settings',
@@ -166,6 +169,8 @@ class HomeScreen extends ConsumerWidget {
                                     ChatScreen(
                                       userName: user.name,
                                       userImage: user.photoUrl,
+                                      // Pass the recipient's UID
+                                      recipientId: user.uid,
                                     ),
                                   );
                                 },
